@@ -1,21 +1,60 @@
 <template>
-    <div>
-        <div v-for="course in courses" :key="course.id">
-            <h2>{{ course.title }}</h2>
-            <figure>
-                <img v-bind:src="course.img"/>
-            </figure>
-            <p v-html="course.description"></p>
-            <p>Price: {{ course.price }}</p>
-            <p>Available Stock: {{ course.availableInventory }}</p>
-            <button @click="add(product)">Add to cart</button>
+  
+    <div class="row m-4">
+          <div
+            class="col-md-4"
+            v-for="course in sortedCourses"
+            :key="course.id"
+            >
+            <div class="card md-4 m-2 shadow">
+              <img
+                v-bind:src="'https://cw-2-smoky.vercel.app/'+course.image"
+                class="ct height: 300px; width: 100%; mx-auto d-block img-fluid"
+              />
+
+              <div class="card-body">
+                <h2 v-text="course.title"></h2>
+                <p v-html="course.description"></p>
+                <p>Location: {{course.location}}</p>
+                <p>Price: {{course.price}}</p>
+
+                <p>
+                  Available stock: {{course.availableInventory
+                  -cartCount(course.id) }}
+                </p>
+
+                <button
+                  v-on:click="addItem(course)"
+                  v-if="canAddToCart(course)"
+                  class="btn btn-outline-info"
+                >
+                  Add to cart
+                </button>
+                <button disabled="disabled" v-else>Add to cart</button>
+                <span
+                  v-if="course.availableInventory
+                === cartCount(course.id)"
+                >
+                  All out!
+                </span>
+
+                <span
+                  v-else-if="course.availableInventory - cartCount(course.id) < 5"
+                >
+                  Only {{course.availableInventory - cartCount(course.id)}}
+                  left!
+                </span>
+                <span v-else>Buy now!</span>
+              </div>
+            </div>
+          </div>
         </div>
-    </div>
 </template>
 
 <script>
     export default {
   name: "courseList",
+  props: ['addcourse', 'canCart', ],
   data() {
     return {
       sitename: "Welcome to After School!",
@@ -25,10 +64,6 @@
       showCourse: true,
       sortOption: "title",
       sortOrder: "asc",
-      order: {
-        firstName: "",
-        phoneNumber: ""
-      }
     };
   },
 
@@ -37,7 +72,6 @@
   },
 
   methods: {
-    // method to get lessons from mongo db
     async getCourses() {
       var url = "https://cw-2-smoky.vercel.app/collection/courses/";
       var courses = await fetch(url);
@@ -45,45 +79,19 @@
       this.courses = courses;
       console.log("fetched");
     },
-
-    async searchCourses() {
-      var query = {
-        search: this.searchQuery,
-        sort: this.sortOption,
-        order: this.sortOrder
-      };
-      var courses = await fetch(
-        "https://cw-2-smoky.vercel.app/collection/courses/",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(query)
-        }
-      );
-      courses = await courses.json();
-      this.courses = courses;
-      console.log("fetched");
-    },
-
-    addToCart(course) {
-      this.cart.push(course.id);
-    },
-
-    removeFromCart(courseID) {
-      const index = this.cart.indexOf(courseID);
-      if (index !== -1) {
-        this.cart.splice(index, 1);
-      }
-    },
-
-    showCheckout() {
-      this.showCourse = !this.showCourse;
-    },
-
-    submitForm() {
-      alert("Order submitted!");
-    },
-
+    addItem(course) {
+        // Emit an event to notify the parent component to remove the item
+        this.$emit('addcourse', course);
+      },
+    // addToCart(course) {
+    //   this.cart.push(course.id);
+    // },
+    // canAddToCart(course) {
+    //   this.$emit('canCart', course);
+    // },
+    // cartCount(id) {
+    //   this.$emit('cartCounter', id)
+    // }
     canAddToCart(course) {
       return course.availableInventory > this.cartCount(course.id);
     },
@@ -97,37 +105,6 @@
       }
       return count;
     },
-
-    async checkout() {
-      var order = {
-        // all cart items
-        courses: [...this.cart],
-        firstName: this.order.firstName,
-        phoneNumber: this.order.phoneNumber
-      };
-
-      this.cart.forEach((item) => {
-        item = this.courses.filter((course) => course.id == item)[0];
-        item.availableInventory -= this.cartCount(item.id);
-        fetch(`https://cw-2-smoky.vercel.app/collection/courses/${item._id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            availableInventory: item.availableInventory
-          })
-        });
-      });
-
-      await fetch("https://cw-2-smoky.vercel.app/collection/orders/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(order)
-      });
-
-      alert("order successful");
-      this.cart = [];
-      this.showCourse = true;
-    }
   },
 
   computed: {
@@ -169,13 +146,6 @@
         return 0;
       });
     },
-
-    validInput() {
-      return (
-        /^[a-zA-Z\s]+$/.test(this.order.firstName) &&
-        /^\d+$/.test(this.order.phoneNumber)
-      );
-    }
   }
 };
     </script>
