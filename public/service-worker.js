@@ -2,11 +2,11 @@ var CacheName = 'mohschool-v1';
 var CacheFiles = [
     'index.html',
     'cw3.webmanifest',
-    'images/arabic.jpg',
-    'images/arts.jpg',
-    'images/chess.jpg',
-    'images/cooking.jpg',
-    'images/dancing.jpg',
+    'public/images/arabic.jpg',
+    'public/images/arts.jpg',
+    'public/images/chess.jpg',
+    'public/images/cooking.jpg',
+    './public/images/dancing.jpg',
 ];
 
 self.addEventListener('install', (e) => {
