@@ -3,12 +3,12 @@
     "description": "my School",
     "icons": [
         {
-            "src": "/public/images/logo.png",
+            "src": "public/images/logo.png",
             "sizes": "192x192",
             "type": "images/logo.jpg"
         },
         {
-            "src": "/public/images/ororo.png",
+            "src": "public/images/ororo.png",
             "sizes": "512x512",
             "type": "images/ororo.png"
         }
